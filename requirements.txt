@@ -8,3 +8,4 @@ notebook
 ipykernel
 xgboost
 lightgbm 
+joblib
