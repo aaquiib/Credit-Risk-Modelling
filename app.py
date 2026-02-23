@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import streamlit as st
 import pandas as pd
 import joblib
@@ -59,6 +61,18 @@ st.markdown(
             max-width: 520px;
             margin: 0 auto;
         }
+        .hero-dataset {
+            font-size: 0.78rem !important;
+            color: #6b7280 !important;
+            margin-top: 10px !important;
+        }
+        .hero-dataset a {
+            color: #a78bfa;
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.2s;
+        }
+        .hero-dataset a:hover { border-bottom-color: #a78bfa; }
 
         /* ---- risk badge ---- */
         .risk-good {
@@ -175,10 +189,24 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# ── Constants ─────────────────────────────────────────────────────────────────
+_MODEL_PATH = Path(__file__).parent / "notebook" / "saved_models" / "Xgboost_model1.joblib"
+
+HIGH_RISK_PURPOSES = {"vacation/others", "repairs", "domestic appliances"}
+
+
+def chip(label: str, warn: bool = False) -> str:
+    cls = "chip chip-warn" if warn else "chip chip-ok"
+    return f'<span class="{cls}">{label}</span>'
+
+
 # ── Load model ────────────────────────────────────────────────────────────────
 @st.cache_resource
 def load_model():
-    return joblib.load("notebook/saved_models/Xgboost_model1.joblib")
+    if not _MODEL_PATH.exists():
+        st.error(f"Model file not found: {_MODEL_PATH}")
+        st.stop()
+    return joblib.load(_MODEL_PATH)
 
 model = load_model()
 
@@ -188,6 +216,7 @@ st.markdown(
     <div class="hero">
         <h1>🏦 Credit Risk Analyser</h1>
         <p>Fill in the applicant details below to get an instant AI-powered credit risk assessment.</p>
+        <p class="hero-dataset">Based on the <a href="https://www.kaggle.com/datasets/kabure/german-credit-data-with-risk" target="_blank" rel="noopener noreferrer">German Credit Dataset</a></p>
     </div>
     """,
     unsafe_allow_html=True,
@@ -311,18 +340,13 @@ with right:
 
         chips_html = '<div class="chip-row">'
 
-        def chip(label, warn=False):
-            cls = "chip chip-warn" if warn else "chip chip-ok"
-            return f'<span class="{cls}">{label}</span>'
-
         chips_html += chip(f"Duration: {duration}mo", warn=duration > 36)
         chips_html += chip(f"Amount: {credit_amount:,} DM", warn=credit_amount > 10_000)
         chips_html += chip(f"Age: {age}", warn=age < 25)
         chips_html += chip(f"Savings: {saving}", warn=saving == "little")
         chips_html += chip(f"Checking: {checking}", warn=checking == "little")
         chips_html += chip(f"Housing: {housing}", warn=housing == "rent")
-        high_risk_purposes = {"vacation/others", "repairs", "domestic appliances"}
-        chips_html += chip(f"Purpose: {purpose}", warn=purpose in high_risk_purposes)
+        chips_html += chip(f"Purpose: {purpose}", warn=purpose in HIGH_RISK_PURPOSES)
 
         chips_html += "</div>"
         st.markdown(chips_html, unsafe_allow_html=True)
