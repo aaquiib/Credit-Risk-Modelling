@@ -2,6 +2,7 @@
 
 An end-to-end machine learning project that predicts credit risk for loan applicants using the German Credit Dataset. A trained XGBoost model is served through an interactive Streamlit web application that provides instant risk scores, probability breakdowns, and actionable recommendations.
 
+**Live App:** https://credit-risk-modelling01.streamlit.app/
 ---
 
 ## Table of Contents
